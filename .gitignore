@@ -1,0 +1,49 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Editors
+.vscode/
+.idea/
+*.swp
+
+# Env / secrets
+.env
+.env.local
+.env.*.local
+
+# Node (Capacitor/Cordova tooling)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json.bak
+
+# Build output
+dist/
+build/
+www/
+
+# Capacitor
+.capacitor/
+capacitor.config.json.bak
+
+# Android (once the app is wrapped for Android)
+android/app/build/
+android/build/
+android/.gradle/
+android/local.properties
+android/*.iml
+android/.idea/
+*.apk
+*.aab
+
+# Signing keys — never commit these
+*.keystore
+*.jks
+
+# iOS (in case Capacitor scaffolds it too)
+ios/App/build/
+ios/App/Pods/
+ios/App/App.xcworkspace/xcuserdata/
