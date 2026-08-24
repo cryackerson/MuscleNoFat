@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Рекомпозиция тела — инструкция</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Karla:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --bg: #f5f7f9;
+    --surface: #ffffff;
+    --surface-2: #eef2f6;
+    --border: #dbe3ea;
+    --ink: #10161f;
+    --ink-dim: #5b6b7c;
+    --ink-faint: #8695a6;
+    --accent: #0891b2;
+    --accent-ink: #ffffff;
+    --protein: #db2777;
+    --fat: #b45309;
+    --carbs: #16a34a;
+    --kcal: #2563eb;
+    --danger: #dc2626;
+    --good: #16a34a;
+    --warn: #b45309;
+
+    --font-display: 'Oswald', 'Arial Narrow', sans-serif;
+    --font-body: 'Karla', 'Segoe UI', sans-serif;
+    --font-mono: 'IBM Plex Mono', 'SFMono-Regular', monospace;
+  }
+
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg: #0b0f14;
+      --surface: #131a22;
+      --surface-2: #1a2330;
+      --border: #243040;
+      --ink: #e7edf4;
+      --ink-dim: #9aa9ba;
+      --ink-faint: #64748b;
+      --accent: #22d3ee;
+      --accent-ink: #06222a;
+      --protein: #f472b6;
+      --fat: #fbbf24;
+      --carbs: #4ade80;
+      --kcal: #60a5fa;
+      --danger: #fb7185;
+      --good: #4ade80;
+      --warn: #fbbf24;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg: #0b0f14;
+    --surface: #131a22;
+    --surface-2: #1a2330;
+    --border: #243040;
+    --ink: #e7edf4;
+    --ink-dim: #9aa9ba;
+    --ink-faint: #64748b;
+    --accent: #22d3ee;
+    --accent-ink: #06222a;
+    --protein: #f472b6;
+    --fat: #fbbf24;
+    --carbs: #4ade80;
+    --kcal: #60a5fa;
+    --danger: #fb7185;
+    --good: #4ade80;
+    --warn: #fbbf24;
+  }
+
+  *{ box-sizing: border-box; }
+  html{ text-size-adjust: 100%; }
+  body{
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  a{ color: var(--accent); }
+
+  .shell{
+    display: grid;
+    grid-template-columns: 240px minmax(0,720px);
+    justify-content: center;
+    gap: 56px;
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 56px 24px 96px;
+  }
+  @media (max-width: 880px){
+    .shell{ grid-template-columns: minmax(0,1fr); gap: 0; padding: 0 0 64px; }
+    .toc{ display: none; }
+  }
+
+  /* ---------- Hero ---------- */
+  .hero{
+    grid-column: 1 / -1;
+    max-width: 720px;
+    margin: 0 auto 8px;
+    padding: 0 24px;
+  }
+  @media (max-width: 880px){ .hero{ padding: 48px 24px 32px; } }
+
+  .hero .eyebrow{
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .hero .eyebrow::before{
+    content: "";
+    width: 18px; height: 2px;
+    background: var(--accent);
+    display: inline-block;
+  }
+  .hero h1{
+    font-family: var(--font-display);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .01em;
+    font-size: clamp(34px, 5vw, 50px);
+    line-height: 1.04;
+    margin: 14px 0 16px;
+    text-wrap: balance;
+    color: var(--ink);
+  }
+  .hero p.lede{
+    font-size: 18px;
+    color: var(--ink-dim);
+    max-width: 56ch;
+    margin: 0;
+  }
+
+  .hero .macro-strip{
+    display: flex;
+    gap: 8px;
+    margin-top: 28px;
+    flex-wrap: wrap;
+  }
+  .chip{
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 600;
+    padding: 6px 12px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--ink-dim);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .chip .dot{ width: 7px; height: 7px; border-radius: 50%; }
+
+  /* ---------- TOC ---------- */
+  .toc{
+    position: sticky;
+    top: 56px;
+    align-self: start;
+    font-size: 13.5px;
+  }
+  .toc .toc-label{
+    font-family: var(--font-mono);
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    font-size: 11px;
+    color: var(--ink-faint);
+    margin-bottom: 14px;
+  }
+  .toc ol{ list-style: none; margin: 0; padding: 0; counter-reset: toc; }
+  .toc li{ counter-increment: toc; margin-bottom: 3px; }
+  .toc a{
+    display: flex;
+    gap: 10px;
+    text-decoration: none;
+    color: var(--ink-dim);
+    padding: 7px 8px;
+    border-radius: 8px;
+    transition: background .15s, color .15s;
+  }
+  .toc a:hover{ background: var(--surface-2); color: var(--ink); }
+  .toc a::before{
+    content: counter(toc, decimal-leading-zero);
+    font-family: var(--font-mono);
+    color: var(--ink-faint);
+    font-size: 11px;
+    padding-top: 2px;
+  }
+
+  /* ---------- Main column ---------- */
+  main{ min-width: 0; padding: 0 24px; }
+  @media (max-width: 880px){ main{ padding: 8px 24px 0; } }
+
+  section{ margin-top: 64px; scroll-margin-top: 24px; }
+  section:first-of-type{ margin-top: 8px; }
+
+  .section-head{
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .section-num{
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--accent);
+    font-weight: 600;
+  }
+  h2{
+    font-family: var(--font-display);
+    text-transform: uppercase;
+    font-weight: 600;
+    letter-spacing: .01em;
+    font-size: 23px;
+    margin: 0;
+    color: var(--ink);
+  }
+  h3{
+    font-family: var(--font-body);
+    font-weight: 700;
+    font-size: 16px;
+    margin: 28px 0 10px;
+    color: var(--ink);
+  }
+  p{ color: var(--ink-dim); margin: 0 0 14px; max-width: 68ch; }
+  strong{ color: var(--ink); font-weight: 700; }
+
+  ul.plain, ol.plain{ margin: 0 0 14px; padding-left: 22px; color: var(--ink-dim); }
+  ul.plain li, ol.plain li{ margin-bottom: 8px; max-width: 64ch; }
+  ul.plain li::marker{ color: var(--accent); }
+
+  code, .kbd{
+    font-family: var(--font-mono);
+    font-size: .88em;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    padding: 1px 6px;
+    border-radius: 5px;
+    color: var(--ink);
+  }
+
+  /* ---------- Cards ---------- */
+  .card{
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px 22px;
+    margin: 16px 0;
+  }
+  .card h3{ margin-top: 0; }
+  .card-grid{
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px,1fr));
+    gap: 12px;
+    margin: 16px 0;
+  }
+  .field-card{
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 16px;
+  }
+  .field-card .label{
+    font-family: var(--font-mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    color: var(--ink-faint);
+  }
+  .field-card .value{
+    font-weight: 700;
+    margin: 4px 0 4px;
+    color: var(--ink);
+  }
+  .field-card .note{ font-size: 13px; color: var(--ink-dim); margin: 0; }
+
+  /* callouts */
+  .callout{
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    padding: 14px 16px;
+    margin: 18px 0;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+  }
+  .callout .ic{ font-size: 18px; line-height: 1.3; }
+  .callout p{ margin: 0; color: var(--ink-dim); font-size: 14.5px; }
+  .callout p strong{ color: var(--ink); }
+  .callout.tip{ background: color-mix(in srgb, var(--accent) 8%, var(--surface)); border-color: color-mix(in srgb, var(--accent) 35%, var(--border)); }
+  .callout.warn{ background: color-mix(in srgb, var(--warn) 10%, var(--surface)); border-color: color-mix(in srgb, var(--warn) 35%, var(--border)); }
+  .callout.good{ background: color-mix(in srgb, var(--good) 10%, var(--surface)); border-color: color-mix(in srgb, var(--good) 35%, var(--border)); }
+
+  /* ---------- Mock progress bars (illustrative) ---------- */
+  .mock-bars{ display: flex; flex-direction: column; gap: 10px; margin: 16px 0; }
+  .mock-bar-row{ display: grid; grid-template-columns: 84px 1fr 74px; align-items: center; gap: 10px; }
+  .mock-bar-row .name{ font-size: 12.5px; font-weight: 700; }
+  .mock-bar-row .track{ height: 9px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 999px; overflow: hidden; }
+  .mock-bar-row .fill{ height: 100%; border-radius: 999px; }
+  .mock-bar-row .num{ font-family: var(--font-mono); font-size: 12px; color: var(--ink-dim); text-align: right; }
+
+  /* ---------- Day toggle mock ---------- */
+  .day-compare{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin: 18px 0;
+  }
+  @media (max-width: 560px){ .day-compare{ grid-template-columns: 1fr; } }
+  .day-card{
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    padding: 16px;
+  }
+  .day-card .tag{
+    font-family: var(--font-mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    display: inline-block;
+    padding: 3px 9px;
+    border-radius: 999px;
+    margin-bottom: 10px;
+  }
+  .day-card.training .tag{ background: color-mix(in srgb, var(--kcal) 18%, transparent); color: var(--kcal); }
+  .day-card.rest .tag{ background: color-mix(in srgb, var(--fat) 18%, transparent); color: var(--fat); }
+  .day-card ul{ list-style: none; padding: 0; margin: 0; font-size: 13.5px; }
+  .day-card li{ display: flex; justify-content: space-between; padding: 5px 0; border-top: 1px solid var(--border); color: var(--ink-dim); }
+  .day-card li:first-child{ border-top: none; }
+  .day-card li b{ color: var(--ink); font-family: var(--font-mono); font-weight: 600; }
+
+  /* ---------- Day squares legend (progress tab) ---------- */
+  .legend-row{ display: flex; align-items: center; gap: 10px; margin-bottom: 10px; font-size: 13.5px; color: var(--ink-dim); }
+  .legend-row .sq{ width: 26px; height: 26px; border-radius: 7px; display: flex; align-items: center; justify-content: center; font-family: var(--font-mono); font-size: 11px; font-weight: 700; flex-shrink: 0; }
+
+  /* ---------- Formula block ---------- */
+  .formula{
+    font-family: var(--font-mono);
+    font-size: 14px;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 16px;
+    color: var(--ink);
+    margin: 14px 0;
+    overflow-x: auto;
+  }
+  .formula .sym{ color: var(--accent); }
+
+  /* ---------- Steps ---------- */
+  .steps{ counter-reset: step; margin: 18px 0; }
+  .step{
+    display: grid;
+    grid-template-columns: 30px 1fr;
+    gap: 14px;
+    margin-bottom: 16px;
+  }
+  .step .num{
+    counter-increment: step;
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-mono); font-size: 13px; font-weight: 700;
+    color: var(--accent);
+  }
+  .step .num::before{ content: counter(step); }
+  .step .body p{ margin: 0; }
+  .step .body .t{ font-weight: 700; color: var(--ink); display: block; margin-bottom: 2px; }
+
+  /* ---------- FAQ ---------- */
+  details.faq{
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--surface);
+    padding: 14px 18px;
+    margin-bottom: 10px;
+  }
+  details.faq summary{
+    cursor: pointer;
+    font-weight: 700;
+    color: var(--ink);
+    list-style: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+  }
+  details.faq summary::-webkit-details-marker{ display: none; }
+  details.faq summary::after{
+    content: "+";
+    font-family: var(--font-mono);
+    color: var(--accent);
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+  details.faq[open] summary::after{ content: "–"; }
+  details.faq p{ margin: 12px 0 0; }
+
+  /* ---------- Footer ---------- */
+  footer{
+    grid-column: 1 / -1;
+    max-width: 720px;
+    margin: 64px auto 0;
+    padding: 24px 24px 0;
+    border-top: 1px solid var(--border);
+    text-align: center;
+  }
+  footer p{ color: var(--ink-faint); font-size: 13px; margin: 0; }
+
+  :focus-visible{ outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ transition: none !important; }
+  }
+
+  .back-link{
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--ink-dim);
+    text-decoration: none;
+    margin-bottom: 18px;
+  }
+  .back-link:hover{ color: var(--accent); }
+</style>
+</head>
+<body>
+
+<div class="shell">
+
+  <div class="hero">
+    <a class="back-link" href="index.html">← Открыть приложение</a>
+    <div class="eyebrow">Руководство пользователя</div>
+    <h1>Рекомпозиция тела</h1>
+    <p class="lede">Трекер БЖУ для тех, кто хочет одновременно сжигать жир и сохранять мышцы. Один HTML-файл, без интернета и аккаунтов — все данные остаются на вашем компьютере.</p>
+    <div class="macro-strip">
+      <span class="chip"><span class="dot" style="background:var(--protein)"></span>Белки</span>
+      <span class="chip"><span class="dot" style="background:var(--fat)"></span>Жиры</span>
+      <span class="chip"><span class="dot" style="background:var(--carbs)"></span>Углеводы</span>
+      <span class="chip"><span class="dot" style="background:var(--kcal)"></span>Калории</span>
+    </div>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-label">Содержание</div>
+    <ol>
+      <li><a href="#idea">Идея приложения</a></li>
+      <li><a href="#start">Первый запуск</a></li>
+      <li><a href="#cycle">Тренировка / отдых</a></li>
+      <li><a href="#food">Добавление еды</a></li>
+      <li><a href="#favorites">Избранные продукты</a></li>
+      <li><a href="#bars">Показатели дня</a></li>
+      <li><a href="#progress">Прогресс и достижения</a></li>
+      <li><a href="#data">Данные и бэкапы</a></li>
+      <li><a href="#tips">Как получить максимум</a></li>
+      <li><a href="#faq">Частые вопросы</a></li>
+    </ol>
+  </nav>
+
+  <main>
+
+    <section id="idea">
+      <div class="section-head"><span class="section-num">01</span><h2>Идея приложения</h2></div>
+      <p><strong>Рекомпозиция тела</strong> — это одновременное избавление от жира и сохранение (а иногда и набор) мышечной массы. Это не классическая «диета», где организм часто теряет мышцы вместе с жиром — здесь задача точнее и требует более внимательного подсчёта питания.</p>
+      <p>Приложение построено на трёх принципах спортивной науки:</p>
+      <ul class="plain">
+        <li><strong>Высокий белок</strong> — 1.6–2.2 г на кг веса тела в день. Это главная защита мышц во время дефицита калорий.</li>
+        <li><strong>Точный подсчёт БЖУ</strong> — не просто калории, а раздельный контроль белков, жиров и углеводов, потому что именно их баланс определяет результат.</li>
+        <li><strong>Цикличность по дням</strong> — в дни тренировок телу нужно больше углеводов для энергии и восстановления гликогена, в дни отдыха — меньше углеводов и чуть больше жиров.</li>
+      </ul>
+      <div class="callout tip">
+        <div class="ic">💡</div>
+        <p><strong>Короче говоря:</strong> приложение считает, сколько белков, жиров и углеводов вам нужно съедать каждый день — с поправкой на то, тренировались вы сегодня или отдыхали — и следит, насколько точно вы в эту норму попадаете.</p>
+      </div>
+    </section>
+
+    <section id="start">
+      <div class="section-head"><span class="section-num">02</span><h2>Первый запуск</h2></div>
+      <p>Откройте файл <code>index.html</code> двойным кликом — он запустится в браузере как обычная страница, интернет для работы не требуется (кроме первой загрузки шрифтов интерфейса).</p>
+      <p>При первом открытии появится окно настройки профиля. Оно нужно, чтобы точно рассчитать вашу дневную норму.</p>
+
+      <div class="card-grid">
+        <div class="field-card">
+          <div class="label">Вес и рост</div>
+          <div class="value">кг / см</div>
+          <p class="note">Основа для расчёта базового обмена веществ (BMR).</p>
+        </div>
+        <div class="field-card">
+          <div class="label">Возраст и пол</div>
+          <div class="value">лет / М·Ж</div>
+          <p class="note">Влияют на скорость метаболизма в формуле BMR.</p>
+        </div>
+        <div class="field-card">
+          <div class="label">Активность</div>
+          <div class="value">5 уровней</div>
+          <p class="note">От сидячего образа жизни до спорта каждый день.</p>
+        </div>
+        <div class="field-card">
+          <div class="label">Темп дефицита</div>
+          <div class="value">мягкий · стандарт · агрессивный</div>
+          <p class="note">Насколько быстро вы хотите терять жир.</p>
+        </div>
+        <div class="field-card">
+          <div class="label">Белок на кг</div>
+          <div class="value">1.6 – 2.2 г/кг</div>
+          <p class="note">Ползунок — чем выше, тем сильнее защита мышц.</p>
+        </div>
+      </div>
+
+      <p>После нажатия <strong>«Сохранить и рассчитать»</strong> приложение вычисляет ваш базовый обмен веществ (BMR) по формуле Миффлина — Сан Жеора, умножает его на коэффициент активности и получает дневную норму калорий, из которой затем выводит граммы белков, жиров и углеводов.</p>
+      <div class="formula"><span class="sym">BMR</span> = 10 × вес + 6.25 × рост − 5 × возраст <span class="sym">±</span> 5 (муж. +5 / жен. −161)</div>
+
+      <div class="callout tip">
+        <div class="ic">⚙️</div>
+        <p>Изменить профиль можно в любой момент кнопкой <strong>⚙️</strong> в правом верхнем углу — например, если вы похудели и вес изменился.</p>
+      </div>
+    </section>
+
+    <section id="cycle">
+      <div class="section-head"><span class="section-num">03</span><h2>Тренировка / отдых</h2></div>
+      <p>Каждый день вы отмечаете его тип двумя кнопками наверху экрана. От этого зависит, как приложение распределит углеводы и жиры на этот день — белок и общий подход к дефициту при этом не меняются.</p>
+
+      <div class="day-compare">
+        <div class="day-card training">
+          <span class="tag">🏋️ День тренировки</span>
+          <ul>
+            <li>Калории <b>выше</b></li>
+            <li>Углеводы <b>~45%</b> калорий</li>
+            <li>Жиры <b>по остатку</b></li>
+          </ul>
+        </div>
+        <div class="day-card rest">
+          <span class="tag">🛌 День отдыха</span>
+          <ul>
+            <li>Калории <b>ниже</b></li>
+            <li>Углеводы <b>~25%</b> калорий</li>
+            <li>Жиры <b>выше</b></li>
+          </ul>
+        </div>
+      </div>
+      <p>Логика простая: в день тренировки телу нужна энергия и гликоген в мышцах — приоритет углеводам. В день отдыха расход энергии ниже, поэтому дефицит калорий немного глубже, а часть калорий перераспределяется в жиры.</p>
+      <p>Стрелки <span class="kbd">◀ ▶</span> рядом с датой переключают дни — можно проставить тип дня и внести еду задним числом или заранее.</p>
+    </section>
+
+    <section id="food">
+      <div class="section-head"><span class="section-num">04</span><h2>Добавление еды</h2></div>
+      <p>В приложении нет привязки к внешним базам продуктов — вы вводите БЖУ вручную, это быстрее и точнее для тех, кто уже знает состав своей еды (по этикетке или фитнес-справочнику).</p>
+
+      <div class="steps">
+        <div class="step">
+          <div class="num"></div>
+          <div class="body"><span class="t">Впишите название</span><p>Например, «куриная грудка» или «яйцо».</p></div>
+        </div>
+        <div class="step">
+          <div class="num"></div>
+          <div class="body"><span class="t">Укажите БЖУ на одну единицу</span><p>На 1 штуку, 100 г или порцию — как вам удобнее считать.</p></div>
+        </div>
+        <div class="step">
+          <div class="num"></div>
+          <div class="body"><span class="t">Задайте количество</span><p>Съели 4 яйца? Впишите <code>4</code> — приложение само умножит БЖУ и калории.</p></div>
+        </div>
+        <div class="step">
+          <div class="num"></div>
+          <div class="body"><span class="t">Нажмите «Добавить в дневник»</span><p>Запись появится в дневнике питания этого дня с готовым названием вида «Яйцо × 4».</p></div>
+        </div>
+      </div>
+
+      <p>Калории считаются автоматически по стандартной формуле — вводить их вручную не нужно:</p>
+      <div class="formula">ккал = (<span class="sym">Белки</span> × 4) + (<span class="sym">Жиры</span> × 9) + (<span class="sym">Углеводы</span> × 4)</div>
+    </section>
+
+    <section id="favorites">
+      <div class="section-head"><span class="section-num">05</span><h2>Избранные продукты</h2></div>
+      <p>Если продукт повторяется изо дня в день (куриная грудка, творог, овсянка), не нужно вбивать его БЖУ заново.</p>
+      <ul class="plain">
+        <li>Заполните форму продукта и нажмите <strong>⭐</strong> вместо «Добавить в дневник» — он сохранится в разделе «Мои продукты» с БЖУ <em>за 1 штуку/порцию</em>.</li>
+        <li>В следующий раз просто впишите нужное количество в поле рядом с карточкой избранного и нажмите <strong>«Добавить»</strong> — запись мгновенно попадёт в дневник текущего дня.</li>
+      </ul>
+      <div class="callout tip">
+        <div class="ic">⭐</div>
+        <p>Соберите 10–15 продуктов, которые едите чаще всего — это превратит ежедневный учёт в дело нескольких кликов.</p>
+      </div>
+    </section>
+
+    <section id="bars">
+      <div class="section-head"><span class="section-num">06</span><h2>Показатели дня</h2></div>
+      <p>На главном экране четыре шкалы показывают, сколько вы уже набрали от дневной нормы:</p>
+
+      <div class="mock-bars">
+        <div class="mock-bar-row"><span class="name" style="color:var(--kcal)">Калории</span><span class="track"><span class="fill" style="width:78%;background:var(--kcal)"></span></span><span class="num">1720/2207</span></div>
+        <div class="mock-bar-row"><span class="name" style="color:var(--protein)">Белки</span><span class="track"><span class="fill" style="width:100%;background:var(--protein)"></span></span><span class="num">165/160г</span></div>
+        <div class="mock-bar-row"><span class="name" style="color:var(--fat)">Жиры</span><span class="track"><span class="fill" style="width:64%;background:var(--fat)"></span></span><span class="num">72/113г</span></div>
+        <div class="mock-bar-row"><span class="name" style="color:var(--carbs)">Углеводы</span><span class="track"><span class="fill" style="width:40%;background:var(--carbs)"></span></span><span class="num">55/138г</span></div>
+      </div>
+
+      <h3>Статус защиты мышц</h3>
+      <p>Отдельный блок над шкалами следит именно за белком — самым важным показателем для сохранения мышц — и переключается между тремя состояниями:</p>
+      <div class="callout good"><div class="ic">🛡️</div><p><strong>Мышцы под защитой</strong> — норма белка выполнена (100% и больше).</p></div>
+      <div class="callout warn"><div class="ic">⚠️</div><p><strong>Почти достаточно</strong> — набрано 70–99% нормы, есть небольшой запас времени.</p></div>
+      <div class="callout" style="background:color-mix(in srgb, var(--danger) 10%, var(--surface)); border-color:color-mix(in srgb, var(--danger) 35%, var(--border));"><div class="ic">🔻</div><p><strong>Риск потери мышц</strong> — белка набрано меньше 70%, стоит добавить белковый продукт.</p></div>
+    </section>
+
+    <section id="progress">
+      <div class="section-head"><span class="section-num">07</span><h2>Прогресс и достижения</h2></div>
+      <p>Вкладка <strong>«📊 Прогресс»</strong> в верхнем меню — это взгляд на всю картину целиком, а не только на сегодняшний день. Она группирует все дни, за которые вы что-то вносили в дневник, по выбранному периоду.</p>
+
+      <h3>Выбор периода</h3>
+      <p>Переключатель <strong>Неделя / 2 недели / Месяц</strong> определяет, как дни группируются в карточки прогресса. Выбор сохраняется и применяется ко всей истории — в любой момент его можно поменять.</p>
+
+      <h3>Как считается процент дня</h3>
+      <p>Для каждого отслеженного дня приложение сравнивает фактическое потребление с целью по всем четырём показателям (калории, белки, жиры, углеводы), берёт средний процент выполнения — и не даёт переедание по одному пункту искусственно «накрутить» итог, потому что каждый показатель ограничен сверху 100%.</p>
+      <div class="legend-row"><span class="sq" style="background:var(--good);color:#06240f">✓</span> День выполнен полностью — все нормы набраны</div>
+      <div class="legend-row"><span class="sq" style="background:var(--warn);color:#231600">18</span> Частично выполнен — показан номер числа и процент при наведении</div>
+      <div class="legend-row"><span class="sq" style="background:var(--danger);color:#2a0808">3</span> Далеко от нормы — меньше 70% выполнения</div>
+
+      <p>Карточка периода показывает общий процент, полосу прогресса, счётчик «X из Y дней выполнено на 100%» и значок — 🏆 при полном выполнении периода, 💪 при хорошем результате (70%+).</p>
+
+      <div class="callout tip">
+        <div class="ic">📈</div>
+        <p>Дни, за которые вы ничего не вносили в дневник, не учитываются и не портят статистику — в зачёт идут только дни, где хотя бы что-то записано.</p>
+      </div>
+    </section>
+
+    <section id="data">
+      <div class="section-head"><span class="section-num">08</span><h2>Данные и бэкапы</h2></div>
+      <p>Все данные — профиль, дневник, избранное, настройки — сохраняются автоматически в памяти браузера (<code>localStorage</code>) сразу после любого изменения. Отдельно нажимать «Сохранить» не нужно.</p>
+      <ul class="plain">
+        <li>Данные привязаны к <strong>этому файлу и этому браузеру</strong>. Если открыть <code>index.html</code> в другом браузере или скопировать файл на другой компьютер — история будет пустой.</li>
+        <li>Кнопка <strong>«⬇️ Экспорт .json»</strong> внизу экрана сохраняет полную копию данных в файл — держите такой файл как резервную копию.</li>
+        <li>Кнопка <strong>«⬆️ Импорт .json»</strong> загружает данные из такого файла обратно — например, на новом компьютере или после переустановки браузера.</li>
+      </ul>
+      <div class="callout warn">
+        <div class="ic">⚠️</div>
+        <p>Открывайте файл именно двойным кликом (<code>file://…</code>) или через «Открыть с помощью → браузер». Просмотр во встроенных предпросмотрщиках может блокировать сохранение — приложение предупредит об этом всплывающим сообщением.</p>
+      </div>
+    </section>
+
+    <section id="tips">
+      <div class="section-head"><span class="section-num">09</span><h2>Как получить максимум</h2></div>
+      <ul class="plain">
+        <li><strong>Белок — приоритет №1.</strong> Если за день удаётся набрать только один показатель, пусть это будет белок — это самый прямой рычаг сохранения мышц.</li>
+        <li><strong>Взвешивайтесь и обновляйте профиль раз в 2–3 недели.</strong> Норма пересчитывается от текущего веса — устаревшие цифры дают неточный план.</li>
+        <li><strong>Отмечайте тип дня заранее.</strong> Если знаете, что завтра тренировка — переключите день с утра, чтобы сразу видеть верную цель по углеводам.</li>
+        <li><strong>Экспортируйте JSON раз в неделю.</strong> Это единственная защита от потери данных при очистке кеша браузера.</li>
+        <li><strong>Смотрите вкладку «Прогресс» по воскресеньям.</strong> Недельная и месячная картина мотивирует лучше, чем один день с недобором.</li>
+      </ul>
+    </section>
+
+    <section id="faq">
+      <div class="section-head"><span class="section-num">10</span><h2>Частые вопросы</h2></div>
+
+      <details class="faq">
+        <summary>Нужен ли интернет для работы?</summary>
+        <p>Нет, всё считается локально в браузере. Интернет требуется только один раз — чтобы подгрузить шрифты интерфейса при первом открытии.</p>
+      </details>
+      <details class="faq">
+        <summary>Можно ли пользоваться на телефоне?</summary>
+        <p>Да, интерфейс адаптивный. Откройте <code>index.html</code> в мобильном браузере — данные сохранятся в этом браузере телефона.</p>
+      </details>
+      <details class="faq">
+        <summary>Что будет, если я не попаду в норму белка за день?</summary>
+        <p>Ничего критичного — статус «Риск потери мышц» просто напомнит об этом. День всё равно засчитается в прогресс с тем процентом, который вы фактически набрали.</p>
+      </details>
+      <details class="faq">
+        <summary>Как перенести данные на новый компьютер?</summary>
+        <p>На старом устройстве нажмите «⬇️ Экспорт .json», перенесите файл (почтой, флешкой, облаком) и на новом устройстве, открыв приложение, нажмите «⬆️ Импорт .json» и выберите этот файл.</p>
+      </details>
+      <details class="faq">
+        <summary>Почему углеводы и жиры не всегда точно совпадают с процентами из раздела «Идея»?</summary>
+        <p>Приложение гарантирует минимум жиров (0.6 г/кг веса) для здоровья гормональной системы — если стандартная пропорция даёт меньше, углеводы немного уменьшаются в пользу жиров.</p>
+      </details>
+    </section>
+
+  </main>
+
+  <footer>
+    <p>Рекомпозиция тела — локальный трекер БЖУ. Все данные хранятся только на вашем устройстве.</p>
+  </footer>
+
+</div>
+</body>
+</html>

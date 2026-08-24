@@ -1,0 +1,1111 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Трекер рекомпозиции тела</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          bg: '#f5f7f9',
+          panel: '#ffffff',
+          panel2: '#eef2f6',
+          border: '#dbe3ea',
+          accent: '#0891b2',
+          protein: '#db2777',
+          fat: '#b45309',
+          carbs: '#16a34a',
+          kcal: '#2563eb'
+        }
+      }
+    }
+  }
+</script>
+<style>
+  html, body { height: 100%; overflow: hidden; background: #f5f7f9; }
+  #app { height: 100vh; height: 100dvh; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-thumb { background: #dbe3ea; border-radius: 4px; }
+  .progress-bar-inner { transition: width .4s ease; }
+  .fade-in { animation: fadeIn .25s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(4px);} to { opacity: 1; transform: translateY(0);} }
+  input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width:16px; height:16px; border-radius:50%; background:#0891b2; cursor:pointer; margin-top:-6px;}
+  input[type=range] { -webkit-appearance: none; height:4px; background:#dbe3ea; border-radius:2px; }
+</style>
+</head>
+<body class="text-slate-800 font-sans">
+
+<div id="app" class="max-w-3xl mx-auto px-4 py-6 pb-24">
+
+  <!-- Header -->
+  <header class="flex items-center justify-between mb-6">
+    <div>
+      <h1 class="text-xl font-bold text-slate-900 tracking-tight">💪 Рекомпозиция тела</h1>
+      <p class="text-xs text-slate-500" id="dateLabel"></p>
+    </div>
+    <div class="flex items-center gap-2">
+      <a id="btnManual" href="manual.html" target="_blank" rel="noopener" title="Инструкция" class="w-9 h-9 flex items-center justify-center rounded-lg bg-panel border border-border hover:bg-panel2 transition">📖</a>
+      <button id="btnSettings" title="Настройки профиля" class="w-9 h-9 flex items-center justify-center rounded-lg bg-panel border border-border hover:bg-panel2 transition">⚙️</button>
+    </div>
+  </header>
+
+  <!-- View tabs -->
+  <div class="mb-6 bg-panel border border-border rounded-xl p-1.5 flex gap-1.5">
+    <button id="tabDay" class="flex-1 py-2.5 rounded-lg text-sm font-semibold transition">📅 Сегодня</button>
+    <button id="tabProgress" class="flex-1 py-2.5 rounded-lg text-sm font-semibold transition">📊 Прогресс</button>
+  </div>
+
+  <div id="dayView">
+
+  <!-- Date nav -->
+  <div class="flex items-center justify-between mb-4 bg-panel border border-border rounded-xl px-3 py-2">
+    <button id="btnPrevDay" class="px-2 py-1 rounded-lg hover:bg-panel2 text-slate-500">◀</button>
+    <div class="text-sm font-medium" id="currentDateText">—</div>
+    <button id="btnNextDay" class="px-2 py-1 rounded-lg hover:bg-panel2 text-slate-500">▶</button>
+  </div>
+
+  <!-- Day type toggle -->
+  <div class="mb-6 bg-panel border border-border rounded-xl p-1.5 flex gap-1.5">
+    <button id="btnTraining" class="flex-1 py-2.5 rounded-lg text-sm font-semibold transition">🏋️ День тренировки</button>
+    <button id="btnRest" class="flex-1 py-2.5 rounded-lg text-sm font-semibold transition">🛌 День отдыха</button>
+  </div>
+
+  <!-- Weight log -->
+  <div class="mb-6 bg-panel border border-border rounded-xl p-4">
+    <div class="flex items-end gap-2">
+      <div class="flex-1">
+        <label class="text-xs text-slate-500 mb-1 block">⚖️ Вес в этот день (кг)</label>
+        <input id="weightInput" type="number" step="0.1" min="0" placeholder="Например: 80.4" class="w-full bg-panel2 border border-border rounded-lg px-3 py-2 text-sm outline-none focus:border-accent placeholder:text-slate-400">
+      </div>
+      <button id="btnSaveWeight" class="px-4 py-2 bg-accent text-white font-semibold rounded-lg text-sm hover:brightness-110 transition">Сохранить</button>
+    </div>
+    <div id="weightNote" class="text-xs text-slate-500 mt-2"></div>
+  </div>
+
+  <!-- Muscle protection status -->
+  <div id="muscleStatus" class="mb-6 rounded-xl border p-4 flex items-center gap-3">
+    <div id="muscleIcon" class="text-2xl"></div>
+    <div>
+      <div id="muscleTitle" class="font-semibold text-sm"></div>
+      <div id="muscleSub" class="text-xs text-slate-500"></div>
+    </div>
+  </div>
+
+  <!-- Progress bars -->
+  <section class="grid grid-cols-2 gap-3 mb-6">
+    <div class="col-span-2 bg-panel border border-border rounded-xl p-4">
+      <div class="flex justify-between items-baseline mb-1.5">
+        <span class="text-sm font-medium text-kcal">Калории</span>
+        <span class="text-xs text-slate-500"><span id="kcalCur">0</span> / <span id="kcalTarget">0</span> ккал</span>
+      </div>
+      <div class="h-3 bg-panel2 rounded-full overflow-hidden">
+        <div id="kcalBar" class="h-full bg-kcal progress-bar-inner rounded-full" style="width:0%"></div>
+      </div>
+    </div>
+
+    <div class="bg-panel border border-border rounded-xl p-4">
+      <div class="flex justify-between items-baseline mb-1.5">
+        <span class="text-sm font-medium text-protein">Белки</span>
+        <span class="text-xs text-slate-500"><span id="proteinCur">0</span>/<span id="proteinTarget">0</span>г</span>
+      </div>
+      <div class="h-2.5 bg-panel2 rounded-full overflow-hidden">
+        <div id="proteinBar" class="h-full bg-protein progress-bar-inner rounded-full" style="width:0%"></div>
+      </div>
+    </div>
+
+    <div class="bg-panel border border-border rounded-xl p-4">
+      <div class="flex justify-between items-baseline mb-1.5">
+        <span class="text-sm font-medium text-fat">Жиры</span>
+        <span class="text-xs text-slate-500"><span id="fatCur">0</span>/<span id="fatTarget">0</span>г</span>
+      </div>
+      <div class="h-2.5 bg-panel2 rounded-full overflow-hidden">
+        <div id="fatBar" class="h-full bg-fat progress-bar-inner rounded-full" style="width:0%"></div>
+      </div>
+    </div>
+
+    <div class="col-span-2 bg-panel border border-border rounded-xl p-4">
+      <div class="flex justify-between items-baseline mb-1.5">
+        <span class="text-sm font-medium text-carbs">Углеводы</span>
+        <span class="text-xs text-slate-500"><span id="carbsCur">0</span>/<span id="carbsTarget">0</span>г</span>
+      </div>
+      <div class="h-2.5 bg-panel2 rounded-full overflow-hidden">
+        <div id="carbsBar" class="h-full bg-carbs progress-bar-inner rounded-full" style="width:0%"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Manual add form -->
+  <section class="mb-6">
+    <h2 class="text-sm font-semibold text-slate-700 mb-2">➕ Добавить продукт</h2>
+    <div class="bg-panel border border-border rounded-xl p-4 space-y-3">
+      <div>
+        <label class="text-xs text-slate-500 mb-1 block">Название продукта</label>
+        <input id="foodName" type="text" placeholder="Например: куриная грудка 200г" class="w-full bg-panel2 border border-border rounded-lg px-3 py-2.5 text-sm outline-none focus:border-accent placeholder:text-slate-400">
+      </div>
+      <p class="text-[11px] text-slate-500 -mt-1">Укажите БЖУ на 1 штуку / порцию, затем задайте количество.</p>
+      <div class="grid grid-cols-3 gap-2">
+        <div>
+          <label class="text-xs text-protein mb-1 block">Белки (г)</label>
+          <input id="foodProtein" type="number" min="0" step="0.1" placeholder="0" class="w-full bg-panel2 border border-border rounded-lg px-3 py-2 text-sm outline-none focus:border-accent">
+        </div>
+        <div>
+          <label class="text-xs text-fat mb-1 block">Жиры (г)</label>
+          <input id="foodFat" type="number" min="0" step="0.1" placeholder="0" class="w-full bg-panel2 border border-border rounded-lg px-3 py-2 text-sm outline-none focus:border-accent">
+        </div>
+        <div>
+          <label class="text-xs text-carbs mb-1 block">Углеводы (г)</label>
+          <input id="foodCarbs" type="number" min="0" step="0.1" placeholder="0" class="w-full bg-panel2 border border-border rounded-lg px-3 py-2 text-sm outline-none focus:border-accent">
+        </div>
+      </div>
+      <div>
+        <label class="text-xs text-slate-500 mb-1 block">Количество (шт. / порций)</label>
+        <input id="foodQty" type="number" min="0.01" step="0.5" value="1" class="w-full bg-panel2 border border-border rounded-lg px-3 py-2 text-sm outline-none focus:border-accent">
+      </div>
+      <div class="flex items-center justify-between bg-panel2 border border-border rounded-lg px-3 py-2.5">
+        <span class="text-xs text-slate-500">Калории (авторасчёт, с учётом количества)</span>
+        <span class="text-sm font-semibold text-kcal"><span id="foodKcal">0</span> ккал</span>
+      </div>
+      <div class="flex gap-2">
+        <button id="btnAddToDiary" class="flex-1 py-2.5 bg-accent text-white font-semibold rounded-lg text-sm hover:brightness-110 transition">Добавить в дневник</button>
+        <button id="btnSaveFavorite" title="Сохранить в избранное" class="px-4 py-2.5 bg-panel2 border border-border rounded-lg text-sm font-medium hover:bg-border transition">⭐</button>
+        <button id="btnCancelEdit" class="hidden px-4 py-2.5 bg-panel2 border border-border rounded-lg text-sm font-medium hover:bg-border transition">Отмена</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Favorites -->
+  <section class="mb-6">
+    <h2 class="text-sm font-semibold text-slate-700 mb-2">⭐ Мои продукты</h2>
+    <div class="flex gap-2 mb-2">
+      <input id="favSearch" type="text" placeholder="Поиск по названию..." class="flex-1 bg-panel2 border border-border rounded-lg px-3 py-2 text-sm outline-none focus:border-accent placeholder:text-slate-400">
+      <select id="favSort" class="bg-panel2 border border-border rounded-lg px-2 py-2 text-sm outline-none focus:border-accent">
+        <option value="recent">Недавние</option>
+        <option value="alpha">А→Я</option>
+        <option value="protein">Белки ↓</option>
+      </select>
+    </div>
+    <div id="favoritesList" class="space-y-2"></div>
+    <div id="favoritesEmpty" class="text-center text-slate-400 text-sm py-6 border border-dashed border-border rounded-xl">Список избранного пуст</div>
+  </section>
+
+  <!-- Diary -->
+  <section>
+    <h2 class="text-sm font-semibold text-slate-700 mb-2">📔 Дневник питания</h2>
+    <div id="diaryList" class="space-y-2"></div>
+    <div id="diaryEmpty" class="text-center text-slate-400 text-sm py-8 border border-dashed border-border rounded-xl">Пока ничего не добавлено</div>
+  </section>
+
+  </div>
+  <!-- /dayView -->
+
+  <!-- Progress view -->
+  <div id="progressView" class="hidden">
+    <section class="mb-6">
+      <h2 class="text-sm font-semibold text-slate-700 mb-2">Период отслеживания</h2>
+      <div class="bg-panel border border-border rounded-xl p-1.5 flex gap-1.5">
+        <button id="periodWeek" class="flex-1 py-2 rounded-lg text-xs font-semibold transition">Неделя</button>
+        <button id="periodTwoWeek" class="flex-1 py-2 rounded-lg text-xs font-semibold transition">2 недели</button>
+        <button id="periodMonth" class="flex-1 py-2 rounded-lg text-xs font-semibold transition">Месяц</button>
+        <button id="periodCustom" class="flex-1 py-2 rounded-lg text-xs font-semibold transition">Свой</button>
+      </div>
+      <div id="customPeriodRow" class="hidden mt-2 flex items-center gap-2 bg-panel border border-border rounded-xl px-3 py-2">
+        <span class="text-xs text-slate-500">Группировать по</span>
+        <input id="customPeriodDays" type="number" min="2" max="90" value="14" class="w-16 bg-panel2 border border-border rounded-lg px-2 py-1 text-sm outline-none focus:border-accent text-center">
+        <span class="text-xs text-slate-500">дней</span>
+      </div>
+    </section>
+
+    <section>
+      <h2 class="text-sm font-semibold text-slate-700 mb-2">Ваш прогресс</h2>
+      <div id="periodsList" class="space-y-3"></div>
+      <div id="periodsEmpty" class="text-center text-slate-400 text-sm py-8 border border-dashed border-border rounded-xl">Пока нет данных — добавьте продукты в дневник, чтобы увидеть прогресс.</div>
+    </section>
+  </div>
+
+  <!-- Export/Import -->
+  <div class="fixed bottom-0 left-0 right-0 bg-panel/95 backdrop-blur border-t border-border">
+    <div class="max-w-3xl mx-auto px-4 py-3 flex gap-2">
+      <button id="btnExport" class="flex-1 py-2.5 bg-panel2 border border-border rounded-lg text-sm font-medium hover:bg-border transition">⬇️ Экспорт .json</button>
+      <label class="flex-1 py-2.5 bg-panel2 border border-border rounded-lg text-sm font-medium hover:bg-border transition text-center cursor-pointer">
+        ⬆️ Импорт .json
+        <input id="fileImport" type="file" accept=".json,application/json" class="hidden">
+      </label>
+    </div>
+  </div>
+</div>
+
+<!-- Setup / Settings Modal -->
+<div id="setupModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden items-center justify-center px-4">
+  <div class="bg-panel border border-border rounded-2xl p-6 w-full max-w-md fade-in max-h-[90vh] overflow-y-auto">
+    <h2 class="text-lg font-bold text-slate-900 mb-1">Настройка профиля</h2>
+    <p class="text-xs text-slate-500 mb-5">Данные нужны для точного расчёта нормы БЖУ и калорий под рекомпозицию тела.</p>
+
+    <div class="space-y-4">
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="text-xs text-slate-500 mb-1 block">Вес (кг)</label>
+          <input id="inWeight" type="number" step="0.1" placeholder="75" class="w-full bg-panel2 border border-border rounded-lg px-3 py-2 text-sm outline-none focus:border-accent">
+        </div>
+        <div>
+          <label class="text-xs text-slate-500 mb-1 block">Рост (см)</label>
+          <input id="inHeight" type="number" placeholder="178" class="w-full bg-panel2 border border-border rounded-lg px-3 py-2 text-sm outline-none focus:border-accent">
+        </div>
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="text-xs text-slate-500 mb-1 block">Возраст</label>
+          <input id="inAge" type="number" placeholder="28" class="w-full bg-panel2 border border-border rounded-lg px-3 py-2 text-sm outline-none focus:border-accent">
+        </div>
+        <div>
+          <label class="text-xs text-slate-500 mb-1 block">Пол</label>
+          <select id="inGender" class="w-full bg-panel2 border border-border rounded-lg px-3 py-2 text-sm outline-none focus:border-accent">
+            <option value="male">Мужской</option>
+            <option value="female">Женский</option>
+          </select>
+        </div>
+      </div>
+
+      <div>
+        <label class="text-xs text-slate-500 mb-1 block">Уровень активности</label>
+        <select id="inActivity" class="w-full bg-panel2 border border-border rounded-lg px-3 py-2 text-sm outline-none focus:border-accent">
+          <option value="1.2">Сидячий образ жизни</option>
+          <option value="1.375">Лёгкая активность (1-3 тренировки/нед)</option>
+          <option value="1.55" selected>Средняя активность (3-5 тренировок/нед)</option>
+          <option value="1.725">Высокая активность (6-7 тренировок/нед)</option>
+          <option value="1.9">Очень высокая (спорт + физ. работа)</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="text-xs text-slate-500 mb-1 block">Цель / темп дефицита</label>
+        <select id="inGoal" class="w-full bg-panel2 border border-border rounded-lg px-3 py-2 text-sm outline-none focus:border-accent">
+          <option value="0.9">Рекомпозиция — мягкий темп (лучше для мышц)</option>
+          <option value="0.8" selected>Рекомпозиция — стандартный темп</option>
+          <option value="0.7">Рекомпозиция — агрессивный темп</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="text-xs text-slate-500 mb-1 block">Белок на кг веса: <span id="proteinPerKgLabel" class="text-accent font-semibold">2.0</span> г/кг</label>
+        <input id="inProteinPerKg" type="range" min="1.6" max="2.2" step="0.1" value="2.0" class="w-full">
+        <div class="flex justify-between text-[10px] text-slate-400 mt-1"><span>1.6 (минимум)</span><span>2.2 (максимум)</span></div>
+      </div>
+    </div>
+
+    <div class="flex gap-2 mt-6">
+      <button id="btnSaveProfile" class="flex-1 py-2.5 bg-accent text-white font-semibold rounded-lg text-sm hover:brightness-110 transition">Сохранить и рассчитать</button>
+      <button id="btnCancelProfile" class="hidden px-4 py-2.5 bg-panel2 border border-border rounded-lg text-sm font-medium hover:bg-border transition">Отмена</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast" class="fixed top-4 left-1/2 -translate-x-1/2 bg-panel2 border border-border text-sm px-4 py-2.5 rounded-lg shadow-xl hidden z-50 fade-in"></div>
+
+<script>
+(function(){
+  const STORAGE_KEY = 'recomp_tracker_state_v1';
+  const todayISO = () => new Date().toISOString().slice(0,10);
+
+  let state = loadState();
+  let currentDate = todayISO();
+
+  function defaultState(){
+    return { profile: null, dayTypes: {}, diary: {}, favorites: [], weightLog: {}, settings: { periodType: 'month', customPeriodDays: 14 } };
+  }
+
+  function loadState(){
+    try{
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if(!raw) return defaultState();
+      const parsed = JSON.parse(raw);
+      return Object.assign(defaultState(), parsed);
+    }catch(e){ return defaultState(); }
+  }
+
+  function saveState(){
+    try{
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }catch(e){
+      toast('⚠️ Не удалось сохранить в localStorage. Откройте файл через двойной клик (file://), а не из встроенного предпросмотра.');
+    }
+  }
+
+  function toast(msg){
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.remove('hidden');
+    clearTimeout(t._timer);
+    t._timer = setTimeout(()=> t.classList.add('hidden'), 2200);
+  }
+
+  // ---------- Profile / macro calc ----------
+  function bmr(p){
+    const base = 10*p.weight + 6.25*p.height - 5*p.age;
+    return p.gender === 'male' ? base + 5 : base - 161;
+  }
+
+  function calcTargets(dayType){
+    const p = state.profile;
+    if(!p) return null;
+    const tdee = bmr(p) * p.activity;
+    const proteinG = Math.round(p.weight * p.proteinPerKg);
+    const proteinCal = proteinG * 4;
+
+    let calories, carbShare;
+    if(dayType === 'training'){
+      calories = Math.round(tdee * Math.min(p.goal + 0.1, 1.0));
+      carbShare = 0.45;
+    } else {
+      calories = Math.round(tdee * p.goal);
+      carbShare = 0.25;
+    }
+
+    let carbsCal = calories * carbShare;
+    let carbsG = Math.round(carbsCal / 4);
+    let fatCal = calories - proteinCal - carbsCal;
+    let fatG = Math.round(fatCal / 9);
+
+    const minFat = Math.round(p.weight * 0.6);
+    if(fatG < minFat){
+      fatG = minFat;
+      carbsG = Math.max(0, Math.round((calories - proteinCal - fatG*9)/4));
+    }
+
+    return { calories, proteinG, fatG, carbsG };
+  }
+
+  // ---------- Rendering ----------
+  function getDayType(date){
+    return state.dayTypes[date] || 'rest';
+  }
+
+  function getDiary(date){
+    if(!state.diary[date]) state.diary[date] = [];
+    return state.diary[date];
+  }
+
+  function sumDiary(date){
+    const items = getDiary(date);
+    return items.reduce((acc, it) => {
+      acc.kcal += it.kcal; acc.protein += it.protein; acc.fat += it.fat; acc.carbs += it.carbs;
+      return acc;
+    }, {kcal:0, protein:0, fat:0, carbs:0});
+  }
+
+  function fmt(n){ return Math.round(n*10)/10; }
+
+  function render(){
+    document.getElementById('currentDateText').textContent = formatDateRu(currentDate);
+    document.getElementById('dateLabel').textContent = 'Учёт БЖУ и калорий';
+
+    const dayType = getDayType(currentDate);
+    document.getElementById('btnTraining').className = 'flex-1 py-2.5 rounded-lg text-sm font-semibold transition ' +
+      (dayType === 'training' ? 'bg-accent text-white' : 'text-slate-500 hover:bg-panel2');
+    document.getElementById('btnRest').className = 'flex-1 py-2.5 rounded-lg text-sm font-semibold transition ' +
+      (dayType === 'rest' ? 'bg-accent text-white' : 'text-slate-500 hover:bg-panel2');
+
+    const targets = calcTargets(dayType);
+    const totals = sumDiary(currentDate);
+
+    if(!targets){
+      openSetup(false);
+      return;
+    }
+
+    setBar('kcal', totals.kcal, targets.calories, false);
+    setBar('protein', totals.protein, targets.proteinG, true);
+    setBar('fat', totals.fat, targets.fatG, true);
+    setBar('carbs', totals.carbs, targets.carbsG, true);
+
+    renderMuscleStatus(totals.protein, targets.proteinG);
+    renderDiary(dayType);
+    renderFavorites();
+    renderProgressView();
+    renderWeight();
+  }
+
+  function setBar(key, cur, target, grams){
+    const pct = target > 0 ? Math.min(100, Math.round((cur/target)*100)) : 0;
+    document.getElementById(key+'Bar').style.width = pct + '%';
+    document.getElementById(key+'Cur').textContent = grams ? fmt(cur) : Math.round(cur);
+    document.getElementById(key+'Target').textContent = grams ? fmt(target) : Math.round(target);
+  }
+
+  function renderMuscleStatus(cur, target){
+    const pct = target > 0 ? (cur/target)*100 : 0;
+    const box = document.getElementById('muscleStatus');
+    const icon = document.getElementById('muscleIcon');
+    const title = document.getElementById('muscleTitle');
+    const sub = document.getElementById('muscleSub');
+
+    box.className = 'mb-6 rounded-xl border p-4 flex items-center gap-3 ';
+    if(pct >= 100){
+      box.className += 'bg-emerald-500/10 border-emerald-500/30';
+      icon.textContent = '🛡️';
+      title.textContent = 'Мышцы под защитой';
+      title.className = 'font-semibold text-sm text-emerald-600';
+      sub.textContent = 'Норма белка выполнена — отличная защита мышечной массы.';
+    } else if(pct >= 70){
+      box.className += 'bg-amber-500/10 border-amber-500/30';
+      icon.textContent = '⚠️';
+      title.textContent = 'Почти достаточно белка';
+      title.className = 'font-semibold text-sm text-amber-600';
+      sub.textContent = 'Осталось набрать ' + fmt(target*(1-pct/100)) + ' г белка до нормы.';
+    } else {
+      box.className += 'bg-rose-500/10 border-rose-500/30';
+      icon.textContent = '🔻';
+      title.textContent = 'Риск потери мышц';
+      title.className = 'font-semibold text-sm text-rose-600';
+      sub.textContent = 'Белка набрано мало — добавьте белковый продукт в дневник.';
+    }
+  }
+
+  function renderDiary(dayType){
+    const items = getDiary(currentDate);
+    const list = document.getElementById('diaryList');
+    const empty = document.getElementById('diaryEmpty');
+    list.innerHTML = '';
+    empty.classList.toggle('hidden', items.length > 0);
+
+    items.forEach(it => {
+      const row = document.createElement('div');
+      row.className = 'bg-panel border border-border rounded-xl px-4 py-3 flex items-center justify-between fade-in';
+      row.innerHTML = `
+        <div class="min-w-0">
+          <div class="text-sm font-medium text-slate-800 truncate">${escapeHtml(it.name)}</div>
+          <div class="text-xs text-slate-500">${Math.round(it.kcal)} ккал ·
+            <span class="text-protein">Б ${fmt(it.protein)}</span> ·
+            <span class="text-fat">Ж ${fmt(it.fat)}</span> ·
+            <span class="text-carbs">У ${fmt(it.carbs)}</span>
+          </div>
+        </div>
+        <div class="flex items-center gap-1 ml-3 shrink-0">
+          <button data-id="${it.id}" class="btnEditItem text-slate-500 hover:text-accent text-base leading-none px-1.5" title="Редактировать">✏️</button>
+          <button data-id="${it.id}" class="btnDelItem text-slate-500 hover:text-rose-400 text-lg leading-none px-1.5">✕</button>
+        </div>
+      `;
+      list.appendChild(row);
+    });
+
+    document.querySelectorAll('.btnEditItem').forEach(btn => {
+      btn.addEventListener('click', () => {
+        startEditDiaryItem(btn.getAttribute('data-id'));
+      });
+    });
+
+    document.querySelectorAll('.btnDelItem').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.getAttribute('data-id');
+        if(String(editingDiaryId) === id){
+          stopEditDiaryItem();
+          clearFoodForm();
+        }
+        state.diary[currentDate] = getDiary(currentDate).filter(x => String(x.id) !== id);
+        saveState(); render();
+      });
+    });
+  }
+
+  function escapeHtml(s){
+    const d = document.createElement('div');
+    d.textContent = s;
+    return d.innerHTML;
+  }
+
+  function formatDateRu(iso){
+    const d = new Date(iso + 'T00:00:00');
+    const isToday = iso === todayISO();
+    const str = d.toLocaleDateString('ru-RU', { day:'numeric', month:'long', weekday:'short' });
+    return isToday ? 'Сегодня · ' + str : str;
+  }
+
+  // ---------- Weight log ----------
+  function renderWeight(){
+    const input = document.getElementById('weightInput');
+    const note = document.getElementById('weightNote');
+    const logged = state.weightLog[currentDate];
+    if(document.activeElement !== input){
+      input.value = logged !== undefined ? logged : '';
+    }
+
+    const dates = Object.keys(state.weightLog).sort();
+    if(dates.length === 0){
+      note.textContent = '';
+      return;
+    }
+    const lastDate = dates[dates.length - 1];
+    if(lastDate === currentDate){
+      note.textContent = '';
+    } else {
+      note.textContent = `Последний вес: ${fmt(state.weightLog[lastDate])} кг (${formatDateRu(lastDate)})`;
+    }
+  }
+
+  document.getElementById('btnSaveWeight').addEventListener('click', () => {
+    const val = parseFloat(document.getElementById('weightInput').value);
+    if(!val || val <= 0){
+      toast('Введите корректный вес');
+      return;
+    }
+    state.weightLog[currentDate] = val;
+    let msg = 'Вес сохранён';
+    if(currentDate === todayISO() && state.profile){
+      state.profile.weight = val;
+      msg += ' — профиль обновлён';
+    }
+    saveState();
+    render();
+    toast(msg);
+  });
+
+  // ---------- Setup modal ----------
+  function openSetup(cancellable){
+    const modal = document.getElementById('setupModal');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    const cancelBtn = document.getElementById('btnCancelProfile');
+    cancelBtn.classList.toggle('hidden', !cancellable);
+
+    const p = state.profile;
+    if(p){
+      document.getElementById('inWeight').value = p.weight;
+      document.getElementById('inHeight').value = p.height;
+      document.getElementById('inAge').value = p.age;
+      document.getElementById('inGender').value = p.gender;
+      document.getElementById('inActivity').value = p.activity;
+      document.getElementById('inGoal').value = p.goal;
+      document.getElementById('inProteinPerKg').value = p.proteinPerKg;
+      document.getElementById('proteinPerKgLabel').textContent = p.proteinPerKg.toFixed(1);
+    }
+  }
+
+  function closeSetup(){
+    const modal = document.getElementById('setupModal');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+  }
+
+  document.getElementById('inProteinPerKg').addEventListener('input', (e) => {
+    document.getElementById('proteinPerKgLabel').textContent = parseFloat(e.target.value).toFixed(1);
+  });
+
+  document.getElementById('btnSaveProfile').addEventListener('click', () => {
+    const weight = parseFloat(document.getElementById('inWeight').value);
+    const height = parseFloat(document.getElementById('inHeight').value);
+    const age = parseFloat(document.getElementById('inAge').value);
+    if(!weight || !height || !age){
+      toast('Заполните вес, рост и возраст');
+      return;
+    }
+    state.profile = {
+      weight, height, age,
+      gender: document.getElementById('inGender').value,
+      activity: parseFloat(document.getElementById('inActivity').value),
+      goal: parseFloat(document.getElementById('inGoal').value),
+      proteinPerKg: parseFloat(document.getElementById('inProteinPerKg').value)
+    };
+    saveState();
+    closeSetup();
+    render();
+    toast('Нормы БЖУ рассчитаны ✅');
+  });
+
+  document.getElementById('btnCancelProfile').addEventListener('click', closeSetup);
+  document.getElementById('btnSettings').addEventListener('click', () => openSetup(true));
+
+  // ---------- Day type ----------
+  document.getElementById('btnTraining').addEventListener('click', () => {
+    state.dayTypes[currentDate] = 'training'; saveState(); render();
+  });
+  document.getElementById('btnRest').addEventListener('click', () => {
+    state.dayTypes[currentDate] = 'rest'; saveState(); render();
+  });
+
+  // ---------- Date nav ----------
+  document.getElementById('btnPrevDay').addEventListener('click', () => {
+    const d = new Date(currentDate + 'T00:00:00');
+    d.setDate(d.getDate()-1);
+    currentDate = d.toISOString().slice(0,10);
+    stopEditDiaryItem();
+    render();
+  });
+  document.getElementById('btnNextDay').addEventListener('click', () => {
+    const d = new Date(currentDate + 'T00:00:00');
+    d.setDate(d.getDate()+1);
+    currentDate = d.toISOString().slice(0,10);
+    stopEditDiaryItem();
+    render();
+  });
+
+  // ---------- Manual food entry ----------
+  function calcKcal(protein, fat, carbs){
+    return protein*4 + fat*9 + carbs*4;
+  }
+
+  function readFoodForm(){
+    const name = document.getElementById('foodName').value.trim();
+    const protein = parseFloat(document.getElementById('foodProtein').value) || 0;
+    const fat = parseFloat(document.getElementById('foodFat').value) || 0;
+    const carbs = parseFloat(document.getElementById('foodCarbs').value) || 0;
+    const qty = parseFloat(document.getElementById('foodQty').value) || 1;
+    return { name, protein, fat, carbs, qty, kcal: calcKcal(protein, fat, carbs) };
+  }
+
+  function updateKcalPreview(){
+    const protein = parseFloat(document.getElementById('foodProtein').value) || 0;
+    const fat = parseFloat(document.getElementById('foodFat').value) || 0;
+    const carbs = parseFloat(document.getElementById('foodCarbs').value) || 0;
+    const qty = parseFloat(document.getElementById('foodQty').value) || 1;
+    document.getElementById('foodKcal').textContent = Math.round(calcKcal(protein, fat, carbs) * qty);
+  }
+
+  ['foodProtein','foodFat','foodCarbs','foodQty'].forEach(id => {
+    document.getElementById(id).addEventListener('input', updateKcalPreview);
+  });
+
+  function clearFoodForm(){
+    document.getElementById('foodName').value = '';
+    document.getElementById('foodProtein').value = '';
+    document.getElementById('foodFat').value = '';
+    document.getElementById('foodCarbs').value = '';
+    document.getElementById('foodQty').value = '1';
+    updateKcalPreview();
+  }
+
+  // Builds a diary entry from per-unit macros + quantity, scaling everything by qty.
+  // Keeps the per-unit values + qty around so the entry can be reopened for editing later.
+  function buildDiaryItem(name, protein, fat, carbs, qty, existingId){
+    return {
+      id: existingId || (Date.now() + Math.random()),
+      name: qty !== 1 ? `${name} × ${fmt(qty)}` : name,
+      baseName: name,
+      unitProtein: protein,
+      unitFat: fat,
+      unitCarbs: carbs,
+      qty,
+      protein: protein * qty,
+      fat: fat * qty,
+      carbs: carbs * qty,
+      kcal: calcKcal(protein, fat, carbs) * qty
+    };
+  }
+
+  // ---------- Editing an existing diary entry ----------
+  let editingDiaryId = null;
+
+  function startEditDiaryItem(id){
+    const item = getDiary(currentDate).find(x => String(x.id) === String(id));
+    if(!item) return;
+    editingDiaryId = id;
+    document.getElementById('foodName').value = item.baseName !== undefined ? item.baseName : item.name;
+    document.getElementById('foodProtein').value = item.unitProtein !== undefined ? item.unitProtein : item.protein;
+    document.getElementById('foodFat').value = item.unitFat !== undefined ? item.unitFat : item.fat;
+    document.getElementById('foodCarbs').value = item.unitCarbs !== undefined ? item.unitCarbs : item.carbs;
+    document.getElementById('foodQty').value = item.qty !== undefined ? item.qty : 1;
+    updateKcalPreview();
+    document.getElementById('btnAddToDiary').textContent = 'Сохранить изменения';
+    document.getElementById('btnCancelEdit').classList.remove('hidden');
+    document.getElementById('foodName').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    document.getElementById('foodName').focus();
+  }
+
+  function stopEditDiaryItem(){
+    if(!editingDiaryId) return;
+    editingDiaryId = null;
+    document.getElementById('btnAddToDiary').textContent = 'Добавить в дневник';
+    document.getElementById('btnCancelEdit').classList.add('hidden');
+  }
+
+  document.getElementById('btnCancelEdit').addEventListener('click', () => {
+    stopEditDiaryItem();
+    clearFoodForm();
+  });
+
+  document.getElementById('btnAddToDiary').addEventListener('click', () => {
+    const food = readFoodForm();
+    if(!food.name){
+      toast('Введите название продукта');
+      return;
+    }
+    if(food.protein === 0 && food.fat === 0 && food.carbs === 0){
+      toast('Укажите хотя бы один параметр БЖУ');
+      return;
+    }
+
+    if(editingDiaryId){
+      const list = getDiary(currentDate);
+      const idx = list.findIndex(x => String(x.id) === String(editingDiaryId));
+      if(idx !== -1){
+        list[idx] = buildDiaryItem(food.name, food.protein, food.fat, food.carbs, food.qty, editingDiaryId);
+      }
+      saveState();
+      toast('Изменения сохранены: ' + food.name);
+      stopEditDiaryItem();
+      clearFoodForm();
+      render();
+      return;
+    }
+
+    getDiary(currentDate).push(buildDiaryItem(food.name, food.protein, food.fat, food.carbs, food.qty));
+    saveState();
+    render();
+    toast('Добавлено в дневник: ' + food.name);
+    clearFoodForm();
+  });
+
+  document.getElementById('btnSaveFavorite').addEventListener('click', () => {
+    const food = readFoodForm();
+    if(!food.name){
+      toast('Введите название продукта');
+      return;
+    }
+    if(food.protein === 0 && food.fat === 0 && food.carbs === 0){
+      toast('Укажите хотя бы один параметр БЖУ');
+      return;
+    }
+    state.favorites.push({
+      id: Date.now() + Math.random(),
+      name: food.name,
+      protein: food.protein,
+      fat: food.fat,
+      carbs: food.carbs,
+      kcal: food.kcal
+    });
+    saveState();
+    renderFavorites();
+    toast('Сохранено в избранное (за 1 шт.): ' + food.name);
+  });
+
+  let favSearchTerm = '';
+  let favSortMode = 'recent';
+
+  document.getElementById('favSearch').addEventListener('input', (e) => {
+    favSearchTerm = e.target.value.trim().toLowerCase();
+    renderFavorites();
+  });
+  document.getElementById('favSort').addEventListener('change', (e) => {
+    favSortMode = e.target.value;
+    renderFavorites();
+  });
+
+  function renderFavorites(){
+    const list = document.getElementById('favoritesList');
+    const empty = document.getElementById('favoritesEmpty');
+    const all = state.favorites || [];
+    let items = all.slice();
+
+    if(favSearchTerm){
+      items = items.filter(it => it.name.toLowerCase().includes(favSearchTerm));
+    }
+    if(favSortMode === 'alpha'){
+      items.sort((a,b) => a.name.localeCompare(b.name, 'ru'));
+    } else if(favSortMode === 'protein'){
+      items.sort((a,b) => b.protein - a.protein);
+    } else {
+      items.sort((a,b) => b.id - a.id);
+    }
+
+    list.innerHTML = '';
+    empty.classList.toggle('hidden', items.length > 0);
+    empty.textContent = all.length === 0
+      ? 'Список избранного пуст'
+      : `Ничего не найдено по запросу «${favSearchTerm}»`;
+
+    items.forEach(it => {
+      const row = document.createElement('div');
+      row.className = 'bg-panel border border-border rounded-xl px-4 py-3 flex items-center justify-between fade-in gap-2';
+      row.innerHTML = `
+        <div class="min-w-0">
+          <div class="text-sm font-medium text-slate-800 truncate">${escapeHtml(it.name)}</div>
+          <div class="text-xs text-slate-500">за 1 шт.: ${Math.round(it.kcal)} ккал ·
+            <span class="text-protein">Б ${fmt(it.protein)}</span> ·
+            <span class="text-fat">Ж ${fmt(it.fat)}</span> ·
+            <span class="text-carbs">У ${fmt(it.carbs)}</span>
+          </div>
+        </div>
+        <div class="flex items-center gap-1.5 shrink-0">
+          <input type="number" min="0.01" step="0.5" value="1" data-id="${it.id}" class="favQty w-14 bg-panel2 border border-border rounded-lg px-2 py-1.5 text-xs outline-none focus:border-accent">
+          <button data-id="${it.id}" class="btnAddFav px-3 py-1.5 bg-accent text-white text-xs font-semibold rounded-lg hover:brightness-110 transition">Добавить</button>
+          <button data-id="${it.id}" class="btnDelFav text-slate-500 hover:text-rose-400 text-lg leading-none px-2">✕</button>
+        </div>
+      `;
+      list.appendChild(row);
+    });
+
+    document.querySelectorAll('.btnAddFav').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.getAttribute('data-id');
+        const fav = (state.favorites || []).find(x => String(x.id) === id);
+        if(!fav) return;
+        const qtyInput = document.querySelector(`.favQty[data-id="${id}"]`);
+        const qty = parseFloat(qtyInput.value) || 1;
+        getDiary(currentDate).push(buildDiaryItem(fav.name, fav.protein, fav.fat, fav.carbs, qty));
+        saveState();
+        render();
+        toast('Добавлено в дневник: ' + fav.name);
+      });
+    });
+
+    document.querySelectorAll('.btnDelFav').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.getAttribute('data-id');
+        state.favorites = (state.favorites || []).filter(x => String(x.id) !== id);
+        saveState();
+        renderFavorites();
+      });
+    });
+  }
+
+  // ---------- View tabs (day / progress) ----------
+  let currentView = 'day';
+
+  function setView(view){
+    currentView = view;
+    document.getElementById('dayView').classList.toggle('hidden', view !== 'day');
+    document.getElementById('progressView').classList.toggle('hidden', view !== 'progress');
+    document.getElementById('tabDay').className = 'flex-1 py-2.5 rounded-lg text-sm font-semibold transition ' +
+      (view === 'day' ? 'bg-accent text-white' : 'text-slate-500 hover:bg-panel2');
+    document.getElementById('tabProgress').className = 'flex-1 py-2.5 rounded-lg text-sm font-semibold transition ' +
+      (view === 'progress' ? 'bg-accent text-white' : 'text-slate-500 hover:bg-panel2');
+    if(view === 'progress') renderProgressView();
+  }
+
+  document.getElementById('tabDay').addEventListener('click', () => setView('day'));
+  document.getElementById('tabProgress').addEventListener('click', () => setView('progress'));
+
+  // ---------- Progress / achievements ----------
+  const pad2 = n => String(n).padStart(2, '0');
+  const isoOf = d => `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
+
+  function mondayOf(d){
+    const day = d.getDay();
+    const diff = day === 0 ? -6 : 1 - day;
+    const m = new Date(d);
+    m.setDate(d.getDate() + diff);
+    m.setHours(0,0,0,0);
+    return m;
+  }
+
+  // Fraction (0-1) of the day's calorie/protein/fat/carb targets that were met, capped at 100% each.
+  function dailyCompletion(date){
+    const dayType = getDayType(date);
+    const targets = calcTargets(dayType);
+    if(!targets) return null;
+    const totals = sumDiary(date);
+    const ratios = [
+      targets.calories > 0 ? totals.kcal / targets.calories : 0,
+      targets.proteinG > 0 ? totals.protein / targets.proteinG : 0,
+      targets.fatG > 0 ? totals.fat / targets.fatG : 0,
+      targets.carbsG > 0 ? totals.carbs / targets.carbsG : 0
+    ].map(r => Math.min(1, Math.max(0, r)));
+    return ratios.reduce((a,b) => a+b, 0) / ratios.length;
+  }
+
+  function trackedDates(){
+    return Object.keys(state.diary).filter(d => (state.diary[d] || []).length > 0).sort();
+  }
+
+  function periodKey(dateISO, type, customDays){
+    const d = new Date(dateISO + 'T00:00:00');
+    if(type === 'month'){
+      return `${d.getFullYear()}-${pad2(d.getMonth()+1)}`;
+    }
+    if(type === 'week'){
+      return isoOf(mondayOf(d));
+    }
+    const blockLen = type === 'custom' ? Math.max(2, customDays || 14) : 14;
+    const epoch = new Date('2020-01-06T00:00:00');
+    const days = Math.floor((d - epoch) / 86400000);
+    const block = Math.floor(days / blockLen);
+    const blockStart = new Date(epoch.getTime() + block * blockLen * 86400000);
+    return isoOf(blockStart);
+  }
+
+  function periodLabel(key, type, customDays){
+    if(type === 'month'){
+      const [y, m] = key.split('-').map(Number);
+      const d = new Date(y, m-1, 1);
+      const label = d.toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' });
+      return label.charAt(0).toUpperCase() + label.slice(1);
+    }
+    const start = new Date(key + 'T00:00:00');
+    const end = new Date(start);
+    const blockLen = type === 'week' ? 7 : type === 'twoWeek' ? 14 : Math.max(2, customDays || 14);
+    end.setDate(start.getDate() + blockLen - 1);
+    const fmtShort = d => d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' });
+    const prefix = type === 'week' ? 'Неделя' : type === 'twoWeek' ? '2 недели' : `${blockLen} дней`;
+    return `${prefix}: ${fmtShort(start)} — ${fmtShort(end)}`;
+  }
+
+  // First vs last logged weight within a period, so progress cards can show the trend alongside adherence.
+  function weightDeltaForPeriod(key, type, customDays){
+    const entries = Object.keys(state.weightLog)
+      .filter(d => periodKey(d, type, customDays) === key)
+      .sort();
+    if(entries.length < 2) return null;
+    const first = state.weightLog[entries[0]];
+    const last = state.weightLog[entries[entries.length - 1]];
+    return { first, last, delta: last - first };
+  }
+
+  function computePeriods(type, customDays){
+    const dates = trackedDates();
+    const groups = {};
+    dates.forEach(date => {
+      const key = periodKey(date, type, customDays);
+      if(!groups[key]) groups[key] = [];
+      const pct = dailyCompletion(date);
+      if(pct !== null) groups[key].push({ date, pct });
+    });
+    return Object.keys(groups).sort().reverse().map(key => {
+      const days = groups[key].sort((a,b) => a.date.localeCompare(b.date));
+      const avg = days.reduce((a,d) => a + d.pct, 0) / days.length;
+      const completeDays = days.filter(d => d.pct >= 0.995).length;
+      const weight = weightDeltaForPeriod(key, type, customDays);
+      return { key, label: periodLabel(key, type, customDays), days, avg, completeDays, weight };
+    });
+  }
+
+  function renderProgressView(){
+    const listEl = document.getElementById('periodsList');
+    const emptyEl = document.getElementById('periodsEmpty');
+    if(!listEl) return;
+
+    const type = (state.settings && state.settings.periodType) || 'month';
+    const customDays = (state.settings && state.settings.customPeriodDays) || 14;
+    const periodBtnType = { periodWeek: 'week', periodTwoWeek: 'twoWeek', periodMonth: 'month', periodCustom: 'custom' };
+    Object.keys(periodBtnType).forEach(id => {
+      document.getElementById(id).className = 'flex-1 py-2 rounded-lg text-xs font-semibold transition ' +
+        (type === periodBtnType[id] ? 'bg-accent text-white' : 'text-slate-500 hover:bg-panel2');
+    });
+    document.getElementById('customPeriodRow').classList.toggle('hidden', type !== 'custom');
+    const customInput = document.getElementById('customPeriodDays');
+    if(document.activeElement !== customInput){
+      customInput.value = customDays;
+    }
+
+    if(!state.profile){
+      listEl.innerHTML = '';
+      emptyEl.classList.remove('hidden');
+      emptyEl.textContent = 'Сначала настройте профиль, чтобы считать прогресс по дням.';
+      return;
+    }
+
+    const periods = computePeriods(type, customDays);
+    listEl.innerHTML = '';
+    emptyEl.classList.toggle('hidden', periods.length > 0);
+    if(periods.length === 0){
+      emptyEl.textContent = 'Пока нет данных — добавьте продукты в дневник, чтобы увидеть прогресс.';
+      return;
+    }
+
+    periods.forEach(period => {
+      const pct = Math.round(period.avg * 100);
+      const barColor = pct >= 100 ? 'bg-emerald-400' : pct >= 70 ? 'bg-amber-400' : 'bg-rose-400';
+      const badge = pct >= 100 ? '🏆' : pct >= 70 ? '💪' : '';
+
+      const card = document.createElement('div');
+      card.className = 'bg-panel border border-border rounded-xl p-4 fade-in';
+
+      const daysHtml = period.days.map(d => {
+        const dp = Math.round(d.pct * 100);
+        const dotColor = dp >= 100 ? 'bg-emerald-400' : dp >= 70 ? 'bg-amber-400' : dp > 0 ? 'bg-rose-400' : 'bg-panel2';
+        const dayNum = new Date(d.date + 'T00:00:00').getDate();
+        const check = dp >= 100 ? '✓' : dayNum;
+        return `<div title="${d.date}: ${dp}%" class="w-7 h-7 rounded-md ${dotColor} flex items-center justify-center text-[10px] font-semibold text-slate-900">${check}</div>`;
+      }).join('');
+
+      let weightRow = '';
+      if(period.weight){
+        const w = period.weight;
+        const wColor = w.delta < 0 ? 'text-emerald-600' : w.delta > 0 ? 'text-amber-600' : 'text-slate-500';
+        const sign = w.delta > 0 ? '+' : '';
+        weightRow = `<div class="text-xs text-slate-500 mb-2">⚖️ Вес: ${fmt(w.first)} → ${fmt(w.last)} кг (<span class="${wColor} font-semibold">${sign}${fmt(w.delta)} кг</span>)</div>`;
+      }
+
+      card.innerHTML = `
+        <div class="flex items-center justify-between mb-2">
+          <div class="text-sm font-semibold text-slate-800">${escapeHtml(period.label)} ${badge}</div>
+          <div class="text-sm font-bold ${pct >= 100 ? 'text-emerald-600' : pct >= 70 ? 'text-amber-600' : 'text-rose-600'}">${pct}%</div>
+        </div>
+        <div class="h-2.5 bg-panel2 rounded-full overflow-hidden mb-3">
+          <div class="h-full ${barColor} progress-bar-inner rounded-full" style="width:${Math.min(100,pct)}%"></div>
+        </div>
+        <div class="text-xs text-slate-500 mb-2">${period.completeDays} из ${period.days.length} дней выполнено на 100%</div>
+        ${weightRow}
+        <div class="flex flex-wrap gap-1.5">${daysHtml}</div>
+      `;
+      listEl.appendChild(card);
+    });
+  }
+
+  ['periodWeek','periodTwoWeek','periodMonth','periodCustom'].forEach(id => {
+    document.getElementById(id).addEventListener('click', () => {
+      const type = id === 'periodWeek' ? 'week' : id === 'periodTwoWeek' ? 'twoWeek' : id === 'periodMonth' ? 'month' : 'custom';
+      state.settings = state.settings || {};
+      state.settings.periodType = type;
+      saveState();
+      renderProgressView();
+    });
+  });
+
+  document.getElementById('customPeriodDays').addEventListener('change', (e) => {
+    let v = parseInt(e.target.value, 10);
+    if(!v || v < 2) v = 2;
+    if(v > 90) v = 90;
+    e.target.value = v;
+    state.settings = state.settings || {};
+    state.settings.customPeriodDays = v;
+    saveState();
+    renderProgressView();
+  });
+
+  // ---------- Export / Import ----------
+  document.getElementById('btnExport').addEventListener('click', () => {
+    const blob = new Blob([JSON.stringify(state, null, 2)], {type: 'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'recomp-tracker-' + todayISO() + '.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast('Данные экспортированы');
+  });
+
+  document.getElementById('fileImport').addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      try{
+        const imported = JSON.parse(ev.target.result);
+        if(!imported || typeof imported !== 'object') throw new Error('bad format');
+        state = Object.assign(defaultState(), imported);
+        saveState();
+        currentDate = todayISO();
+        render();
+        toast('Данные импортированы ✅');
+      }catch(err){
+        toast('Ошибка: файл повреждён или неверный формат');
+      }
+      e.target.value = '';
+    };
+    reader.readAsText(file);
+  });
+
+  // ---------- Init ----------
+  if(!state.profile){
+    openSetup(false);
+  }
+  setView('day');
+  render();
+})();
+</script>
+</body>
+</html>
