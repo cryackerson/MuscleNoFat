@@ -1,0 +1,16 @@
+{
+  "name": "MuscleNoFat",
+  "short_name": "MuscleNoFat",
+  "description": "Трекер БЖУ для рекомпозиции тела — сжигание жира с сохранением мышц.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f5f7f9",
+  "theme_color": "#0891b2",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
